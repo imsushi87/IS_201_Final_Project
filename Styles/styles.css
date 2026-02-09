@@ -1,0 +1,396 @@
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.7;
+    color: #1a1a1a;
+    background: #ffffff;
+    padding: 30px;
+}
+
+.h2 {
+    font-size: 40px;
+    color: #e31b23;
+    margin: 50px 0 30px;
+    text-align: center;
+    font-weight: 700px;
+    text-decoration: underline;
+}
+
+.h3 {
+    font-size: 36px;
+    color: #1a1a1a;
+    border-bottom: 3px solid #e31b23;
+    padding-bottom: 10px;
+    margin: 40px 0 20px;
+    font-weight: 700px;
+}
+
+.h4 {
+    font-size: 30px;
+    color: #e31b23;
+    margin: 35px 0 20px;
+    font-weight: 700px;
+}
+
+.h5 {
+    font-size: 28px;
+    color: #e31b23;
+    margin: 40px 0 25px;
+    text-align: center;
+    font-weight: 700px;
+}
+
+.h6 {
+    font-size: 28px;
+    color: #e31b23;
+    margin: 40px 0 25px;
+    text-align: center;
+    font-weight: 700px;
+}
+
+.kingdomgoal {
+    font-size: 18px;
+    color: #360000;
+    font-weight: bold;
+    font-style: italic; 
+}
+
+/*Everything ABOVE THIS COMMENT I wrote myself. Everything below was done with the help of AI*/
+
+
+p {
+    font-size: 1.15rem;
+    margin-bottom: 25px;
+    color: #333;
+}
+
+p.tiny {
+    font-size: 0.95rem;
+    color: #666;
+    font-style: italic;
+    text-align: center;
+    background: #fff5f5;
+    padding: 15px 25px;
+    border-radius: 8px;
+    border-left: 4px solid #e31b23;
+    margin: 30px auto;
+    max-width: 600px;
+}
+
+
+a {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    display: inline-block;
+    margin: 12px 20px;
+    padding: 16px 32px;
+    background: #e31b23;
+    border-radius: 50px;
+    box-shadow: 
+        0 8px 25px rgba(227, 27, 35, 0.3),
+        inset 0 1px 0 rgba(255,255,255,0.3);
+}
+
+a:hover {
+    background: #c8101f;
+    transform: translateY(-3px);
+    box-shadow: 
+        0 12px 35px rgba(227, 27, 35, 0.4),
+        inset 0 1px 0 rgba(255,255,255,0.4);
+}
+
+/* Top Navigation Container */
+div:first-of-type {
+    background: #ffffff;
+    padding: 35px;
+    border-radius: 15px;
+    margin-bottom: 50px;
+    box-shadow: 0 15px 40px rgba(227, 27, 35, 0.1);
+    text-align: center;
+    border: 2px solid #f0f0f0;
+}
+
+/* Lists */
+ol {
+    counter-reset: kingdom-counter;
+    list-style: none;
+    margin: 40px 0;
+}
+
+ol > li {
+    counter-increment: kingdom-counter;
+    margin: 35px 0;
+    padding: 35px;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 2px solid #f5f5f5;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+ol > li:hover {
+    border-color: #e31b23;
+    box-shadow: 0 20px 50px rgba(227, 27, 35, 0.12);
+    transform: translateY(-2px);
+}
+
+ol > li::before {
+    content: counter(kingdom-counter);
+    position: absolute;
+    left: -25px;
+    top: 35px;
+    background: #e31b23;
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.3rem;
+    box-shadow: 0 6px 20px rgba(227, 27, 35, 0.3);
+}
+
+
+ol > li > strong.kingdom-title {
+    font-weight: 900 !important;
+    display: block;
+    margin-bottom: 15px;
+    font-size: 1.4rem;
+}
+
+ul {
+    margin: 20px 0;
+    padding-left: 25px;
+    list-style: disc;
+}
+
+ul li {
+    color: #333;
+    font-size: 1.1rem;
+    margin: 10px 0;
+}
+
+/* Images and Media */
+/* Images - Default + Specific Sizes */
+img {
+    display: block;
+    margin: 40px auto;
+    border-radius: 12px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+    border: 3px solid #f5f5f5;
+    height: auto;
+}
+
+.small-img {
+    max-width: 25% !important;  /* Much smaller */
+}
+
+.large-img {
+    max-width: 80% !important;  /* Bigger as requested */
+}
+
+iframe {
+    display: block;
+    margin: 40px auto;
+    border-radius: 12px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+    border: 3px solid #f5f5f5;
+}
+
+/* Tableau Container */
+.tableauPlaceholder {
+    margin: 40px auto;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+    border: 3px solid #f5f5f5;
+}
+
+/* Footer */
+.footer {
+    background: #ffffff;
+    padding: 35px;
+    text-align: center;
+    border-radius: 15px;
+    margin: 60px 0 30px;
+    box-shadow: 0 15px 40px rgba(227, 27, 35, 0.08);
+    font-size: 1.2rem;
+    border: 2px solid #f5f5f5;
+}
+
+.footer a {
+    background: #e31b23;
+    font-size: 1.25rem;
+    padding: 18px 36px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    body {
+        padding: 20px;
+    }
+    
+    h1.smo-logo { font-size: 2.5rem; }
+    h2 { font-size: 2.1rem; }
+    
+    a {
+        display: block;
+        margin: 15px auto;
+        max-width: 350px;
+    }
+    
+    ol > li::before {
+        left: -20px;
+        width: 45px;
+        height: 45px;
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    h1.smo-logo { font-size: 2rem; }
+    body { padding: 15px; }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f5f5f5;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #e31b23;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #c8101f;
+}
+
+
+
+h1.smo-logo {
+    font-size: 56px;
+    font-weight: 900px;
+    margin: 40px 0 20px;
+    text-align: center;
+    letter-spacing: -1px;
+}
+
+/* SUPER (All White with Black Stroke) */
+.smo-logo .s { 
+    color: #FFFFFF; 
+    -webkit-text-stroke: 1.5px #000000;
+    text-stroke: 1.5px #000000;
+    paint-order: stroke fill;
+}
+.smo-logo .u { 
+    color: #FFFFFF; 
+    -webkit-text-stroke: 1.5px #000000;
+    text-stroke: 1.5px #000000;
+    paint-order: stroke fill;
+}
+.smo-logo .p { 
+    color: #FFFFFF; 
+    -webkit-text-stroke: 1.5px #000000;
+    text-stroke: 1.5px #000000;
+    paint-order: stroke fill;
+}
+.smo-logo .e { 
+    color: #FFFFFF; 
+    -webkit-text-stroke: 1.5px #000000;
+    text-stroke: 1.5px #000000;
+    paint-order: stroke fill;
+}
+.smo-logo .r1 { 
+    color: #FFFFFF; 
+    -webkit-text-stroke: 1.5px #000000;
+    text-stroke: 1.5px #000000;
+    paint-order: stroke fill;
+}
+
+/* MARIO (Colored with Black Stroke) */
+.smo-logo .m { 
+    color: #E4002B; 
+    -webkit-text-stroke: 1.5px #000000;
+    text-stroke: 1.5px #000000;
+    paint-order: stroke fill;
+}
+.smo-logo .a { 
+    color: #00A651; 
+    -webkit-text-stroke: 1.5px #000000;
+    text-stroke: 1.5px #000000;
+    paint-order: stroke fill;
+}
+.smo-logo .r2 { 
+    color: #FFD700; 
+    -webkit-text-stroke: 1.5px #000000;
+    text-stroke: 1.5px #000000;
+    paint-order: stroke fill;
+}
+.smo-logo .i { 
+    color: #0066CC; 
+    -webkit-text-stroke: 1.5px #000000;
+    text-stroke: 1.5px #000000;
+    paint-order: stroke fill;
+}
+.smo-logo .o1 { 
+    color: #000000; 
+    -webkit-text-stroke: 1.5px #333333;
+    text-stroke: 1.5px #333333;
+    paint-order: stroke fill;
+}
+
+/* ODYSSEY (Light Blue with Black Stroke) */
+.smo-logo .o2 { 
+    color: #66CCFF; 
+    -webkit-text-stroke: 1.5px #000000;
+    text-stroke: 1.5px #000000;
+    paint-order: stroke fill;
+}
+.smo-logo .d { 
+    color: #66CCFF; 
+    -webkit-text-stroke: 1.5px #000000;
+    text-stroke: 1.5px #000000;
+    paint-order: stroke fill;
+}
+.smo-logo .y1 { 
+    color: #66CCFF; 
+    -webkit-text-stroke: 1.5px #000000;
+    text-stroke: 1.5px #000000;
+    paint-order: stroke fill;
+}
+.smo-logo .s2 { 
+    color: #66CCFF; 
+    -webkit-text-stroke: 1.5px #000000;
+    text-stroke: 1.5px #000000;
+    paint-order: stroke fill;
+}
+.smo-logo .s3 { 
+    color: #66CCFF; 
+    -webkit-text-stroke: 1.5px #000000;
+    text-stroke: 1.5px #000000;
+    paint-order: stroke fill;
+}
+.smo-logo .e2 { 
+    color: #66CCFF; 
+    -webkit-text-stroke: 1.5px #000000;
+    text-stroke: 1.5px #000000;
+    paint-order: stroke fill;
+}
+.smo-logo .y2 { 
+    color: #66CCFF; 
+    -webkit-text-stroke: 1.5px #000000;
+    text-stroke: 1.5px #000000;
+    paint-order: stroke fill;
+}

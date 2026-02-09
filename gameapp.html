@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cosmo Dash!</title>
+  <style>
+    * { box-sizing: border-box; padding: 0; margin: 0; }
+    body {
+      background: #121940;
+      color: #fff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+    }
+    h1 {
+      margin: 10px 0 8px;
+      font-size: 45px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: white;
+
+    }
+    canvas {
+      border: 3px solid hwb(0 100% 0%);
+      background: linear-gradient(#bfc8cd 0%, #d7d7d9 45%, #e9e9ea 100%);
+      image-rendering: auto;
+    }
+    #hud { margin-top: 6px; font-size: 13px; }
+    #instructions { margin-top: 8px; font-size: 13px; color: #e0f7fa; text-align: center; max-width: 820px; }
+    #instructions p { margin: 4px 0; }
+    .label { margin: 0 10px; }
+    .label span { font-weight: 600; color: #ffd54f; }
+    #bestTimeLabel { color: #80ff80; }
+
+    .link {
+    background: #ffffff;
+    color: rgb(25, 29, 95);
+    font-size: 20px;
+    padding: 8px 16px;
+    border-radius: 12px;  
+}
+
+  </style>
+
+</head>
+<body>
+  <h1>Cosmo Dash</h1>
+  <a href="index.html" class="link">Back to SMO Speedrunning....</a>
+  <br>
+  <canvas id="game" width="800" height="450"></canvas>
+  <div id="hud">
+    <span class="label">Time: <span id="timeLabel">0.00</span>s</span>
+    <span class="label">Best: <span id="bestTimeLabel">--</span></span>
+    <span class="label">Attempts: <span id="attemptsLabel">1</span></span>
+  </div>
+
+  <div id="instructions">
+    <p>Help Cosmo claim the Flag on the mountains! In true speedrun fashion, try to beat it as fast as possible!</p>
+    <p>Controls: Arrow keys to move; double-press a direction to sprint. Press <strong>R</strong> to restart if you die.</p>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+
+    const keys = {};
+    let lastTap = { left: { time: 0 }, right: { time: 0 } };
+    const doubleTapWindow = 220;
+    let sprinting = false;
+    let sprintDir = 0;
+
+    window.addEventListener("keydown", (e) => {
+      keys[e.code] = true;
+      if (e.code === "KeyR" && (gameOver || finished)) startAttempt();
+
+      const now = performance.now();
+      if (!finished && !gameOver) {
+        if (e.code === "ArrowRight" || e.code === "KeyD") {
+          if (now - lastTap.right.time < doubleTapWindow) {
+            sprinting = true; sprintDir = 1;
+          }
+          lastTap.right.time = now;
+        } else if (e.code === "ArrowLeft" || e.code === "KeyA") {
+          if (now - lastTap.left.time < doubleTapWindow) {
+            sprinting = true; sprintDir = -1;
+          }
+          lastTap.left.time = now;
+        }
+      }
+    });
+
+    window.addEventListener("keyup", (e) => {
+      keys[e.code] = false;
+      if ((e.code === "ArrowRight" || e.code === "KeyD") && sprintDir === 1) {
+        sprinting = false; sprintDir = 0;
+      } else if ((e.code === "ArrowLeft" || e.code === "KeyA") && sprintDir === -1) {
+        sprinting = false; sprintDir = 0;
+      }
+    });
+
+    const timeLabel = document.getElementById("timeLabel");
+    const bestTimeLabel = document.getElementById("bestTimeLabel");
+    const attemptsLabel = document.getElementById("attemptsLabel");
+
+    let scrollX = 0;
+    const baseGravity = 0.7;
+    let gravity = baseGravity;
+    let attempts = 1;
+    let gameOver = false;
+    let finished = false;
+    let startTime = 0;
+    let elapsedTime = 0;
+    let bestTime = null;
+
+    function formatTime(t) { return t.toFixed(2); }
+    function updateTimer(now) {
+      if (!finished && !gameOver) elapsedTime = (now - startTime) / 1000;
+      timeLabel.textContent = formatTime(elapsedTime);
+      bestTimeLabel.textContent = bestTime != null ? formatTime(bestTime) : "--";
+      attemptsLabel.textContent = attempts;
+    }
+
+    const player = {
+      x: 80, y: 0, w: 32, h: 42,
+      vx: 0, vy: 0,
+      speed: 3.0, sprintSpeed: 5.0,
+      jumpStrength: 12, sprintJumpStrength: 14.5,
+      onGround: false, facing: 1,
+    };
+
+    // Ground baseline a bit higher to give vertical room for visuals
+    const G = HEIGHT - 64;
+
+    const platforms = [
+      // SECTION 1: intro flat + first pipe
+      { x: 0,    y: G,     w: 420, h: 48 },
+      { x: 440,  y: G - 32, w: 60, h: 80 },      // pipe 1
+      { x: 520,  y: G,     w: 260, h: 48 },
+
+      // bridging platforms to make gaps jumpable
+      { x: 700,  y: G - 64, w: 60, h: 16 },
+
+      // SECTION 2: two wide pits with low landings and pipes
+      // Pit A (wide, escapable)
+      { x: 880,  y: G + 8, w: 260, h: 48 },     // low landing A (kept visible)
+      { x: 1180, y: G - 48, w: 60,  h: 96 },     // pipe 2
+      { x: 1260, y: G,      w: 220, h: 48 },     // flat after pipe 2
+      { x: 1400, y: G - 60, w: 80,  h: 16 },
+
+      // Pit B (even wider, escapable)
+      { x: 1540, y: G + 12, w: 280, h: 56 },     // low landing B (kept visible)
+      { x: 1860, y: G - 64, w: 60,  h: 112 },    // pipe 3 (tallest)
+      { x: 1940, y: G,      w: 260, h: 48 },     // flat after pipe 3
+      { x: 2080, y: G - 48, w: 80,  h: 16 },
+
+      // SECTION 3: stairs / platforms cluster (like 1‑1 pyramids)
+      { x: 2220, y: G - 16, w: 40, h: 64 },
+      { x: 2270, y: G - 32, w: 40, h: 80 },
+      { x: 2320, y: G - 48, w: 40, h: 96 },
+
+      { x: 2400, y: G - 16, w: 40, h: 64 },
+      { x: 2450, y: G - 32, w: 40, h: 80 },
+      { x: 2500, y: G - 48, w: 40, h: 96 },
+
+      // Elevated mid-air platforms for a faster route
+      { x: 2160, y: G - 80, w: 80, h: 16 },
+      { x: 2360, y: G - 120, w: 80, h: 16 },
+
+      // SECTION 4: long flat run with a few platforms overhead
+      { x: 2580, y: G,      w: 520, h: 48 },
+      { x: 2680, y: G - 80, w: 90,  h: 16 },
+      { x: 2860, y: G - 96, w: 110, h: 16 },
+
+      // SECTION 5: final pit + last flat to flag
+      { x: 3100, y: G + 12, w: 260, h: 56 },     // low landing C (big pit)
+      { x: 3420, y: G,      w: 300, h: 48 },     // last stretch to flag
+
+      // bridge before the extended final area
+      { x: 3580, y: G - 48, w: 120, h: 16 },
+
+      // Extra extended final area (longer level for exploration)
+      { x: 3760, y: G,      w: 360, h: 48 },
+      { x: 4160, y: G - 32, w: 120, h: 80 },
+      { x: 4320, y: G,      w: 680, h: 48 },
+    ];
+
+    // Spikes: specified by x,w,h; y is computed so their bases sit flush on the platform above them
+    const spikes = [
+      { x: 360,  w: 24, h: 16 },
+      { x: 820,  w: 24, h: 16 },
+      { x: 930,  w: 24, h: 16 },
+      { x: 1150, w: 24, h: 16 },
+      { x: 1350, w: 24, h: 16 },
+      { x: 1600, w: 24, h: 16 },
+      { x: 2180, w: 24, h: 16 },
+      { x: 2500, w: 24, h: 16 },
+      { x: 2700, w: 24, h: 16 },
+      { x: 2920, w: 24, h: 16 },
+      { x: 3160, w: 24, h: 16 },
+      { x: 3800, w: 24, h: 16 },
+    ];
+
+    const goal = { x: 5600, y: G - 64, w: 32, h: 64 }; // extended final pole (y will be corrected to platform)
+
+    // Difficulty adjustments: moderate gaps (kept playable) and a bit more length
+    (function increaseDifficultySpacing() {
+      const pushX = 120; // moderate widening so gaps stay jumpable
+      const farExtra = 120; // smaller far-end extension
+      for (const p of platforms) {
+        if (p.x >= 880) p.x += pushX;
+      }
+      // extend far-end platforms slightly
+      for (const p of platforms) {
+        if (p.x >= 3760) p.x += farExtra;
+      }
+      // shift spikes accordingly
+      for (const s of spikes) {
+        if (s.x >= 880) s.x += pushX;
+        if (s.x >= 3760) s.x += farExtra;
+      }
+      // push goal further right to match extended layout
+      goal.x += pushX + farExtra;
+    })();
+
+    // Add a few spikes at the very end of the level (near rightmost platform)
+    (function addEndSpikes() {
+      let last = platforms[0];
+      for (const p of platforms) if (p.x + p.w > last.x + last.w) last = p;
+      const base = last.x + last.w;
+      const endPositions = [base - 84, base - 56, base - 28];
+      for (const ex of endPositions) spikes.push({ x: ex, w: 24, h: 16 });
+
+      // align newly added spikes to platforms (set y)
+      for (const s of spikes) {
+        if (s.y !== undefined) continue;
+        let attached = null;
+        for (const p of platforms) {
+          if (s.x >= p.x && s.x <= p.x + p.w) { attached = p; break; }
+        }
+        if (!attached) {
+          let best = null; let bestDist = Infinity;
+          for (const p of platforms) {
+            const cx = p.x + p.w / 2;
+            const dist = Math.abs(s.x - cx);
+            if (dist < bestDist) { bestDist = dist; best = p; }
+          }
+          if (best && bestDist < 260) attached = best;
+        }
+        if (attached) s.y = attached.y - s.h;
+        else s.y = G - s.h;
+      }
+    })();
+
+    // Remove spikes directly underneath the flag and rebalance spike density
+    (function rebalanceSpikes() {
+      const nearGoal = 140; // radius around goal to keep clear
+      for (let i = spikes.length - 1; i >= 0; i--) {
+        if (Math.abs(spikes[i].x - goal.x) < nearGoal) spikes.splice(i, 1);
+      }
+
+      // sort spikes and enforce minimum spacing so they aren't clustered
+      spikes.sort((a, b) => a.x - b.x);
+      const minSpacing = 160;
+      const kept = [];
+      for (const s of spikes) {
+        if (kept.length === 0 || s.x - kept[kept.length - 1].x >= minSpacing) kept.push(s);
+      }
+      spikes.length = 0;
+      for (const s of kept) spikes.push(s);
+    })();
+
+    // Ensure platforms are on-screen vertically and align spikes + goal to platform tops
+    (function normalizeLevel() {
+      // clamp platforms vertically so they remain visible
+      for (const p of platforms) {
+        if (p.y + p.h > HEIGHT) p.y = HEIGHT - p.h;
+        if (p.y < 0) p.y = 0;
+      }
+
+      // align each spike's y so its bottom is flush with the platform it sits on
+      for (const s of spikes) {
+        // try to find a platform under the spike x
+        let attached = null;
+        for (const p of platforms) {
+          if (s.x >= p.x && s.x <= p.x + p.w) { attached = p; break; }
+        }
+        if (!attached) {
+          // find nearest platform horizontally within some threshold
+          let best = null; let bestDist = Infinity;
+          for (const p of platforms) {
+            const cx = p.x + p.w / 2;
+            const dist = Math.abs(s.x - cx);
+            if (dist < bestDist) { bestDist = dist; best = p; }
+          }
+          if (best && bestDist < 220) attached = best;
+        }
+        if (attached) s.y = attached.y - s.h;
+        else s.y = G - s.h; // default to main ground
+      }
+
+      // position goal so it's on top of the platform beneath it, or snap to the rightmost platform if it's out of range
+      let goalPlaced = false;
+      for (const p of platforms) {
+        if (goal.x >= p.x && goal.x <= p.x + p.w) { goal.y = p.y - goal.h; goalPlaced = true; break; }
+      }
+      if (!goalPlaced) {
+        let last = platforms[0];
+        for (const p of platforms) {
+          if (p.x + p.w > last.x + last.w) last = p;
+        }
+        // place goal slightly inset from the right edge of the last platform
+        const inset = Math.min(48, Math.max(16, Math.floor(last.w / 6)));
+        goal.x = last.x + last.w - inset - goal.w / 2;
+        goal.y = last.y - goal.h;
+      }
+    })();
+
+    function resetPlayerPosition() {
+      player.x = 80; player.y = G - player.h;
+      player.vx = 0; player.vy = 0;
+      player.onGround = false;
+      player.facing = 1;
+      scrollX = 0;
+      sprinting = false; sprintDir = 0;
+      gravity = baseGravity;
+    }
+
+    function startAttempt() {
+      if (!(attempts === 1 && !finished && !gameOver)) attempts += 1;
+      gameOver = false;
+      finished = false;
+      elapsedTime = 0;
+      resetPlayerPosition();
+      startTime = performance.now();
+    }
+
+    function endRunSuccess() {
+      finished = true;
+      if (bestTime == null || elapsedTime < bestTime) bestTime = elapsedTime;
+    }
+    function endRunFail() { gameOver = true; }
+
+    function handleInput() {
+      const left = keys["ArrowLeft"] || keys["KeyA"];
+      const right = keys["ArrowRight"] || keys["KeyD"];
+      const jump = keys["Space"] || keys["ArrowUp"] || keys["KeyW"];
+
+      let moveDir = 0;
+      if (left) moveDir -= 1;
+      if (right) moveDir += 1;
+
+      if (moveDir !== 0 && moveDir !== sprintDir) sprinting = false;
+
+      let targetSpeed = 0;
+      if (moveDir !== 0) {
+        player.facing = moveDir;
+        targetSpeed = (sprinting && moveDir === sprintDir ?
+          player.sprintSpeed : player.speed) * moveDir;
+      }
+      player.vx = targetSpeed;
+
+      if (jump && player.onGround && !gameOver && !finished) {
+        const js = sprinting ? player.sprintJumpStrength : player.jumpStrength;
+        player.vy = -js;
+        player.onGround = false;
+        gravity = sprinting ? baseGravity * 0.9 : baseGravity;
+      }
+    }
+
+    function rectsIntersect(a, b) {
+      return !(
+        a.x + a.w <= b.x ||
+        a.x >= b.x + b.w ||
+        a.y + a.h <= b.y ||
+        a.y >= b.y + b.h
+      );
+    }
+
+    function update(dt, now) {
+      if (gameOver || finished) {
+        updateTimer(now);
+        return;
+      }
+
+      handleInput();
+      player.vy += gravity;
+
+      // Horizontal
+      player.x += player.vx;
+      for (const p of platforms) {
+        const r = { x: p.x, y: p.y, w: p.w, h: p.h };
+        if (rectsIntersect(player, r)) {
+          if (player.vx > 0) player.x = p.x - player.w;
+          else if (player.vx < 0) player.x = p.x + p.w;
+        }
+      }
+
+      // Vertical
+      player.y += player.vy;
+      let onGround = false;
+      for (const p of platforms) {
+        const r = { x: p.x, y: p.y, w: p.w, h: p.h };
+        if (rectsIntersect(player, r)) {
+          if (player.vy > 0) {
+            player.y = p.y - player.h;
+            player.vy = 0;
+            onGround = true;
+            gravity = baseGravity;
+          } else if (player.vy < 0) {
+            player.y = p.y + p.h;
+            player.vy = 0;
+          }
+        }
+      }
+      player.onGround = onGround;
+
+      if (player.y > HEIGHT + 80) endRunFail();
+
+      for (const s of spikes) {
+        const r = { x: s.x, y: s.y, w: s.w, h: s.h };
+        if (rectsIntersect(player, r)) { endRunFail(); break; }
+      }
+
+      const goalRect = { x: goal.x, y: goal.y, w: goal.w, h: goal.h };
+      if (rectsIntersect(player, goalRect)) endRunSuccess();
+
+      const centerThreshold = WIDTH * 0.4;
+      if (player.x - scrollX > centerThreshold) scrollX = player.x - centerThreshold;
+
+      // keep scrollX >= 0
+      if (scrollX < 0) scrollX = 0;
+
+      updateTimer(now);
+    }
+
+    // Layered grey mountains with a blue sky behind them
+    function drawBackground() {
+      // sky (blue behind mountains)
+      const g = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+      g.addColorStop(0, '#6fc1ff');
+      g.addColorStop(0.45, '#bfeaff');
+      g.addColorStop(0.7, '#e6f7ff');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+      // seeded RNG for mountain silhouette jitter
+      function rng(seed) { return function() { seed = (seed * 1664525 + 1013904223) >>> 0; return (seed & 0xffff) / 0xffff; }; }
+
+      const layers = [ {h: 0.62, scale: 0.45, dark:'#3b3b3f'}, {h:0.7, scale:0.6, dark:'#545459'}, {h:0.82, scale:0.9, dark:'#77777b'} ];
+      layers.forEach((layer, li) => {
+        const r = rng(4321 + li);
+        ctx.fillStyle = layer.dark;
+        ctx.beginPath();
+        const step = 180 * layer.scale;
+        let sx = -step + (-(scrollX * (0.25 + li * 0.12)) % step);
+        ctx.moveTo(sx, HEIGHT);
+        for (let x = sx; x <= WIDTH + step; x += step) {
+          const peak = HEIGHT * layer.h - (r() * 120 + 20) * layer.scale;
+          ctx.lineTo(x, peak);
+        }
+        ctx.lineTo(WIDTH, HEIGHT);
+        ctx.closePath();
+        ctx.globalAlpha = 1 - li * 0.12;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      });
+
+      // faint atmospheric foothills
+      ctx.fillStyle = '#8eae94';
+      ctx.globalAlpha = 0.05;
+      ctx.fillRect(0, HEIGHT * 0.78, WIDTH, HEIGHT * 0.22);
+      ctx.globalAlpha = 1;
+
+      // small yellow sun in the top-right corner (screen-space)
+      const sunX = WIDTH - 72;
+      const sunY = 64;
+      const sunR = 28;
+      const sg = ctx.createRadialGradient(sunX, sunY, 4, sunX, sunY, sunR);
+      sg.addColorStop(0, '#fff59d');
+      sg.addColorStop(0.2, '#ffe082');
+      sg.addColorStop(1, 'rgba(255,224,130,0)');
+      ctx.fillStyle = sg;
+      ctx.beginPath();
+      ctx.arc(sunX, sunY, sunR, 0, Math.PI * 2);
+      ctx.fill();
+      // solid core
+      ctx.fillStyle = '#ffd54f';
+      ctx.beginPath();
+      ctx.arc(sunX, sunY, 8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawPlatforms() {
+      // grass style: darker soil body, light green top for grass with textured blades
+      for (const p of platforms) {
+        const x = p.x - scrollX;
+        if (x + p.w < 0 || x > WIDTH) continue;
+
+        // soil body
+        ctx.fillStyle = '#3b3b3b';
+        ctx.fillRect(x, p.y + 6, p.w, p.h - 6);
+
+        // grassy top
+        ctx.fillStyle = '#8fdd71';
+        ctx.fillRect(x, p.y, p.w, 6);
+
+        // textured blades: draw many small triangles across the top
+        let seed = Math.floor((p.x + p.y) & 0xffff);
+        const rnd = function() { seed = (seed * 1664525 + 1013904223) >>> 0; return (seed & 0xffff) / 0xffff; };
+
+        // dark tufts
+        ctx.fillStyle = 'rgba(0,0,0,0.08)';
+        for (let gx = 0; gx < p.w; gx += 6) {
+          const px = Math.floor(x + gx + (rnd() - 0.5) * 4);
+          const h = 3 + Math.floor(rnd() * 4);
+          ctx.beginPath();
+          ctx.moveTo(px, p.y + 6);
+          ctx.lineTo(px + 3, p.y + 6 - h);
+          ctx.lineTo(px + 6, p.y + 6);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        // light highlights
+        ctx.fillStyle = 'rgba(255,255,255,0.06)';
+        for (let gx = 3; gx < p.w; gx += 14) {
+          const px = x + gx + (rnd() - 0.5) * 4;
+          ctx.fillRect(px, p.y + 1, 3, 1);
+        }
+      }
+    }
+
+    function drawSpikes() {
+      ctx.fillStyle = "#b0bec5";
+      for (const s of spikes) {
+        const baseX = s.x - scrollX;
+        if (baseX + s.w < 0 || baseX > WIDTH) continue;
+        ctx.beginPath();
+        ctx.moveTo(baseX, s.y + s.h);
+        ctx.lineTo(baseX + s.w / 2, s.y);
+        ctx.lineTo(baseX + s.w, s.y + s.h);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
+    function drawGoal() {
+      const g = goal;
+      // find platform under goal
+      let groundY = G;
+      for (const p of platforms) {
+        if (g.x >= p.x && g.x <= p.x + p.w) { groundY = p.y; break; }
+      }
+      const screenX = g.x - scrollX;
+      if (screenX + g.w < 0 || screenX > WIDTH) return;
+
+      // base block at groundY
+      ctx.fillStyle = "#5d4037";
+      ctx.fillRect(screenX - 16, groundY, 64, 12);
+
+      // pole
+      ctx.fillStyle = "#efebe9";
+      ctx.fillRect(screenX + g.w / 2 - 4, groundY - 170, 8, 170);
+
+      // larger blue square flag with a more Y-shaped symbol
+      const flagW = 96;
+      const flagH = 72;
+      // place flag to the right of the pole with a small gap
+      const flagX = screenX + g.w / 2 + 16;
+      const flagY = groundY - 180;
+      ctx.fillStyle = '#0d47a1';
+      ctx.fillRect(flagX, flagY, flagW, flagH);
+
+      // draw a clearer Y: two diagonal arms meeting at a center, then a stem down
+      ctx.save();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = Math.max(10, Math.floor(flagW / 10));
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      const leftX = flagX + Math.floor(flagW * 0.18);
+      const leftY = flagY + Math.floor(flagH * 0.18);
+      const rightX = flagX + Math.floor(flagW * 0.82);
+      const rightY = flagY + Math.floor(flagH * 0.18);
+      const midX = flagX + Math.floor(flagW * 0.5);
+      const midY = flagY + Math.floor(flagH * 0.46);
+      const botX = midX;
+      const botY = flagY + Math.floor(flagH * 0.86);
+
+      ctx.beginPath();
+      ctx.moveTo(leftX, leftY);
+      ctx.lineTo(midX, midY);
+      ctx.lineTo(botX, botY);
+      ctx.moveTo(rightX, rightY);
+      ctx.lineTo(midX, midY);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawPlayer() {
+      const screenX = player.x - scrollX;
+      ctx.fillStyle = "#f5f5f5";
+      ctx.fillRect(screenX, player.y, player.w, player.h);
+
+      ctx.fillStyle = "#fbc02d";
+      ctx.fillRect(screenX + 4, player.y - 18, player.w - 8, 18);
+
+      ctx.fillStyle = "#f9a825";
+      ctx.fillRect(screenX + 4, player.y - 22, 8, 6);
+      ctx.fillRect(screenX + player.w - 12, player.y - 22, 8, 6);
+
+      ctx.fillStyle = "#0d47a1";
+      ctx.fillRect(screenX + 2, player.y + 10, player.w - 4, 22);
+
+      // Block Y logo
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(screenX + 9, player.y + 13, 4, 6);
+      ctx.fillRect(screenX + player.w - 13, player.y + 13, 4, 6);
+      ctx.fillRect(screenX + player.w / 2 - 2, player.y + 17, 4, 9);
+
+      // two eyes (left + right) and a small light-pink nose
+      ctx.fillStyle = "#000";
+      const eyeY = player.y - 14;
+      const eyeLX = screenX + Math.floor(player.w / 2) - 6;
+      const eyeRX = screenX + Math.floor(player.w / 2) + 4;
+      ctx.fillRect(eyeLX, eyeY, 3, 3);
+      ctx.fillRect(eyeRX, eyeY, 3, 3);
+
+      // nose (light pink) — larger and slightly lower so it's visible
+      ctx.fillStyle = "#ff7997";
+      ctx.fillRect(screenX + Math.floor(player.w / 2) - 3, player.y - 12, 6, 4);
+    }
+
+    function drawOverlays() {
+      if (finished) {
+        ctx.fillStyle = "rgba(0,0,0,0.6)";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        ctx.fillStyle = "#fff";
+        ctx.font = "28px system-ui";
+        ctx.textAlign = "center";
+        ctx.fillText("Finished!", WIDTH / 2, HEIGHT / 2 - 20);
+        ctx.font = "18px system-ui";
+        ctx.fillText("Time: " + formatTime(elapsedTime) + "s", WIDTH / 2, HEIGHT / 2 + 10);
+        ctx.fillText("Double tap to sprint • R to retry", WIDTH / 2, HEIGHT / 2 + 40);
+      } else if (gameOver) {
+        ctx.fillStyle = "rgba(0,0,0,0.6)";
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        ctx.fillStyle = "#ff8a80";
+        ctx.font = "28px system-ui";
+        ctx.textAlign = "center";
+        ctx.fillText("You fell or hit spikes!", WIDTH / 2, HEIGHT / 2 - 20);
+        ctx.font = "18px system-ui";
+        ctx.fillStyle = "#fff";
+        ctx.fillText("Double tap to sprint • R to retry", WIDTH / 2, HEIGHT / 2 + 20);
+      }
+    }
+
+    let lastTime = 0;
+    function loop(timestamp) {
+      const dt = (timestamp - lastTime) / 16.67;
+      lastTime = timestamp;
+
+      update(dt, timestamp);
+
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);
+      drawBackground();
+      drawPlatforms();
+      drawSpikes();
+      drawGoal();
+      drawPlayer();
+      drawOverlays();
+
+      requestAnimationFrame(loop);
+    }
+
+    startAttempt();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

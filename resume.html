@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Isaac Sushoreba-Resume</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Google Font (Roboto-like clean typography) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" /> <!-- [web:1] -->
+
+  <style>
+    :root {
+      /* BYU navy and white as main colors, green as accent */
+      --primary-navy: #002E5D;     /* BYU navy [web:21] */
+      --primary-navy-light: #1b4474;
+      --primary-navy-dark: #001530;
+      --accent-green: #2e7d32;     /* green accent */
+      --accent-green-light: #66bb6a;
+      --bg-main: #ffffff;          /* white */
+      --bg-alt: #f5f7fb;
+      --text-main: #202124;
+      --text-muted: #5f6368;
+      --border-soft: #e0e0e0;
+      --shadow-soft: 0 1px 3px rgba(60, 64, 67, 0.3);
+      --radius-card: 12px;
+      --max-width: 960px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Roboto", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg-alt);
+      color: var(--text-main);
+      line-height: 1.5;
+    }
+
+    a {
+      color: var(--accent-green);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Top bar similar to Google’s clean header */
+    .top-bar {
+      background: var(--bg-main);
+      box-shadow: var(--shadow-soft);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .top-bar-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 0.3rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      font-size: 1.2rem;
+    }
+
+    .brand span.navy {
+      color: var(--primary-navy);
+    }
+
+    .brand span.white {
+      color: #ffffff;
+      background: var(--primary-navy-dark);
+      padding: 0 0.25rem;
+      border-radius: 4px;
+    }
+
+    .brand span.green {
+      color: var(--accent-green);
+    }
+
+    .top-links {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .top-links a {
+      padding: 0.25rem 0.5rem;
+      border-radius: 999px;
+      transition: background 0.2s ease;
+    }
+
+    .top-links a:hover {
+      background: rgba(0, 46, 93, 0.08);
+    }
+
+    /* Main container */
+    .page {
+      max-width: var(--max-width);
+      margin: 2.5rem auto 3rem auto;
+      padding: 0 1.5rem;
+    }
+
+    /* Hero with image + text */
+    .hero-card {
+      background: var(--bg-main);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-soft);
+      padding: 1.75rem 2.2rem;
+      margin-bottom: 2rem;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 1.75rem;
+      align-items: center;
+    }
+
+    @media (max-width: 640px) {
+      .hero-card {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .hero-main {
+        text-align: center;
+      }
+
+      .hero-contact {
+        justify-content: center;
+      }
+    }
+
+    /* Profile image */
+    .hero-photo-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .hero-photo {
+      width: 240px;      /* increased from 128px */
+      height: 240px;     /* increased from 128px */
+      border-radius: 50%;
+      object-fit: cover; /* ensures large images crop nicely */
+      border: 3px solid var(--primary-navy);
+      box-shadow: 0 0 0 3px #ffffff, 0 2px 6px rgba(0, 0, 0, 0.25);
+    }
+
+    .hero-main {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .hero-name {
+      font-size: clamp(2rem, 4vw, 2.6rem);
+      font-weight: 500;
+      color: var(--primary-navy);
+    }
+
+    .hero-title {
+      font-size: 1rem;
+      color: var(--text-muted);
+    }
+
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.35rem;
+    }
+
+    .chip {
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: #ffffff;
+    }
+
+    .hero-contact {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+    }
+
+    .hero-contact span {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    /* Sections layout */
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1.2fr);
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 800px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-main);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-soft);
+      padding: 1.5rem 1.75rem;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border-soft);
+      padding-bottom: 0.5rem;
+    }
+
+    .card-title {
+      font-weight: 500;
+      font-size: 1rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--primary-navy);
+    }
+
+    .card-pill {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-green);
+      background: rgba(46, 125, 50, 0.06);
+      padding: 0.15rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid rgba(46, 125, 50, 0.2);
+    }
+
+    /* Timeline items (Experience, Education) */
+    .item {
+      margin-bottom: 1.2rem;
+    }
+
+    .item:last-child {
+      margin-bottom: 0;
+    }
+
+    .item-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.15rem;
+    }
+
+    .item-role {
+      font-weight: 500;
+      color: var(--primary-navy);
+    }
+
+    .item-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .item-sub {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .item-bullets {
+      list-style: none;
+      padding-left: 0;
+      font-size: 0.9rem;
+      color: var(--text-main);
+    }
+
+    .item-bullets li {
+      padding-left: 1rem;
+      position: relative;
+      margin-bottom: 0.3rem;
+    }
+
+    .item-bullets li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.55rem;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent-green);
+    }
+
+    /* Skills / side column */
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .tag {
+      font-size: 0.8rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(0, 46, 93, 0.06);
+      color: var(--primary-navy-dark);
+      border: 1px solid rgba(0, 46, 93, 0.3);
+    }
+
+    .progress-row {
+      margin-bottom: 0.7rem;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 0.15rem;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: #eeeeee;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent-green), var(--primary-navy));
+    }
+
+    /* Footer */
+    .footer {
+      max-width: var(--max-width);
+      margin: 2rem auto 1.5rem auto;
+      padding: 0 1.5rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .footer a {
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top bar -->
+  <header class="top-bar">
+    <div class="top-bar-inner">
+      <nav class="top-links">
+        <!-- Replace anchors as needed -->
+        <a href="#experience">Experience</a>
+        <a href="#education">Education</a>
+        <a href="#projects">Projects</a>
+        <a href="#skills">Skills</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <!-- Main header card with image -->
+    <section class="hero-card">
+      <!-- Profile image -->
+      <div class="hero-photo-wrapper">
+        <!-- Replace your-photo.jpg with your own image path or URL -->
+        <img src="images/Business_Pic.jpeg" alt="Isaac Sushoreba" class="hero-photo" />
+      </div>
+
+      <!-- Text content -->
+      <div class="hero-main">
+        <h1 class="hero-name">Isaac Sushoreba</h1>
+        <p class="hero-title">Pre-Information Systems Student · Duluth, MN</p>
+
+        <div class="hero-tags">
+          <span class="chip">Decisive</span>
+          <span class="chip">Focused</span>
+          <span class="chip">Efficient</span>
+          <span class="chip">Goal-Oriented</span>
+        </div>
+
+        <div class="hero-contact">
+          <span>📧 <a href="mailto:***********@gmail.com">***********@gmail.com</a></span>
+        <span>📞 (***) ***-****</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Content grid -->
+    <section class="content-grid">
+      <!-- Left column: Experience / Education / Projects -->
+      <div class="column-left">
+        <!-- Experience -->
+        <article class="card" id="experience">
+          <div class="card-header">
+            <h2 class="card-title">Experience</h2>
+            <span class="card-pill">Professional</span>
+          </div>
+
+          <!-- Item 1 -->
+          <div class="item">
+            <div class="item-top">
+              <div class="item-role">AI Intern · TechTonic Solutions</div>
+              <div class="item-meta">06 2025 – 08 2025 · Duluth, MN</div>
+            </div>
+            <div class="item-sub"> Development and management of custom AI models and systems</div>
+            <ul class="item-bullets">
+              <li>Developed a fully functional AI secretary model</li>
+              <li>Learned the fundamentals of AI model development and implementation into business operations</li>
+              <li>Utilized high end LLMs and AI tools, such as Claude, Manus, Cursor, and Replit</li>
+            </ul>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="item">
+            <div class="item-top">
+              <div class="item-role">Head Shift Lead · Papa Murphy's Pizza</div>
+              <div class="item-meta">03 2021 – 04 2023 · Duluth, MN</div>
+            </div>
+            <div class="item-sub">Managed both the store and its employees.</div>
+            <ul class="item-bullets">
+              <li>Assigned employees to shifts.</li>
+              <li>Handled all closing paperwork and data entries</li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- Education -->
+        <article class="card" id="education" style="margin-top: 1.5rem;">
+          <div class="card-header">
+            <h2 class="card-title">Education</h2>
+            <span class="card-pill">Academic</span>
+          </div>
+
+          <div class="item">
+            <div class="item-top">
+              <div class="item-role">Pre-Information Systems · BYU</div>
+              <div class="item-meta">09 2025 – Ongoing  ·  Provo, UT</div>
+            </div>
+            <div class="item-sub">Concurrent GPA: 3.96</div>
+            <div class="item-sub">Relevant Coursework: Microsoft Excel and Data analysis, Intro to Information Systems, Intro to Python, Intro to Accounting, Intro to Marketing</div>
+          </div>
+
+          <div class="item">
+            <div class="item-top">
+              <div class="item-role">HS Diploma · Proctor High School</div>
+              <div class="item-meta">09 2019 – 06 2023 · Proctor, MN</div>
+            </div>
+            <div class="item-sub">GPA: 3.98</div>
+            <div class="item-sub">Relevant Coursework: CITS Calculus 1, CITS Economics, CITS Sociology</div>
+          </div>
+        </article>
+
+        <!-- Projects -->
+        <article class="card" id="projects" style="margin-top: 1.5rem;">
+          <div class="card-header">
+            <h2 class="card-title">Involvement</h2>
+            <span class="card-pill">Selected</span>
+          </div>
+
+          <div class="item">
+            <div class="item-top">
+              <div class="item-role">Latino Outreach Mission Service</div>
+              <div class="item-meta">07 2023-06 2025</div>
+            </div>
+            <div class="item-sub">Worked with struggling latino communities to improve their lives</div>
+            <ul class="item-bullets">
+              <li>Learned Spanish, provided educational, spiritual, and physical service, and trained and led dozens of others into the program.</li>
+            </ul>
+          </div>
+
+          <div class="item">
+            <div class="item-top">
+              <div class="item-role">Eagle Scout Project</div>
+              <div class="item-meta">10 2019</div>
+            </div>
+            <div class="item-sub">Constructed 2 outdoor kiosks at an environmental reserve</div>
+            <ul class="item-bullets">
+              <li>Planned, organized, and led out a large scale project; recieved Eagle Scout award.</li>
+            </ul>          
+        </div>
+        </article>
+      </div>
+
+      <!-- Right column: Skills / Summary / Extras -->
+      <aside class="column-right">
+        <!-- Summary -->
+        <article class="card">
+          <div class="card-header">
+            <h2 class="card-title">Summary</h2>
+            <span class="card-pill">Profile</span>
+          </div>
+          <p style="font-size: 0.9rem; color: var(--text-main);">
+          Isaac boasts significant experience in leadership, management, and public speaking for his age, which he couples with a strong beginning academic foundation in information systems and business management. He leverages his decisive and goal-oriented, yet kind-hearted nature to efficiently achieve objectives and drive results in both professional and academic settings, as well as motivating and guiding those around him to do the same.
+        </p>
+        </article>
+
+        <!-- Skills -->
+        <article class="card" id="skills" style="margin-top: 1.5rem;">
+          <div class="card-header">
+            <h2 class="card-title">Skills</h2>
+            <span class="card-pill">Core</span>
+          </div>
+
+          <div class="progress-row">
+            <div class="progress-label">
+              <span>Spanish</span>
+              <span>Advanced</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width: 95%;"></div>
+            </div>
+          </div>
+
+          <div class="progress-row">
+            <div class="progress-label">
+              <span>Leadership, Management</span>
+              <span>Advanced</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width: 85%;"></div>
+            </div>
+          </div>
+
+          <div class="progress-row">
+            <div class="progress-label">
+              <span>Public Speaking</span>
+              <span>Advanced</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width: 80%;"></div>
+            </div>
+          </div>
+
+          <div class="progress-row">
+            <div class="progress-label">
+              <span>Tableau, Data analysis</span>
+              <span>Intermediate</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width: 65%;"></div>
+            </div>
+          </div>
+
+          <div class="progress-row">
+            <div class="progress-label">
+              <span>Microsoft Excel, VBA </span>
+              <span>Intermediate</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width: 60%;"></div>
+            </div>
+          </div>
+
+          <div class="progress-row">
+            <div class="progress-label">
+              <span>Python Programming</span>
+              <span>Beginner</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width: 45%;"></div>
+            </div>
+          </div>
+
+          <div class="progress-row">
+            <div class="progress-label">
+              <span>SQL, HTML/CSS</span>
+              <span>Beginner</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width: 35%;"></div>
+            </div>
+          </div>
+
+        </article>
+<br> 
+        <!-- Interests -->
+<article class="card">
+          <div class="card-header">
+            <h2 class="card-title">Interests</h2>
+            
+          </div>
+          <div>
+          <ul class="item-bullets">
+              <li>Ultimate Frisbee</li>
+              <li>Running</li>
+              <li>Choir Singing</li>
+              <li>U.S. History</li>
+              <li>New technology</li>
+              
+            </ul>
+        </div>
+        </article>
+
+  <footer class="footer">
+    &copy; 2025 Isaac Sushoreba. Created using HTML, CSS, & AI assistance.
+  </footer>
+</body>
+</html>
